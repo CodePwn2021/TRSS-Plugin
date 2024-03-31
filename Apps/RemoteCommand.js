@@ -179,14 +179,14 @@ function cmdColoring (_cmd) {
   _cmd = _cmd.split('\n')
   let cmd = _cmd[0].substring('sh-5.2#'.length).trim()
   let spCmd = cmd.split(' ')
-  let start = [`sh-5.2# <span calss="cmd-start">${spCmd[0]}</span>`]
+  let start = [`sh-5.2# <span class="cmd-start">${spCmd[0]}</span>`]
   spCmd.shift()
   for (let v of spCmd) {
     if (/^--?.*/.test(v)) {
-      start.push(`<span calss="cmd-camelCase">${v}</span>`)
+      start.push(`<span class="cmd-camelCase">${v}</span>`)
     }
     if (/^['"].*['"]$/.test(v)) {
-      start.push(`<span calss="cmd-string">${v}</span>`)
+      start.push(`<span class="cmd-string">${v}</span>`)
     }
   }
   _cmd[0] = start.join(' ')
