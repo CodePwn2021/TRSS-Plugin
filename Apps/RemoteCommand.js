@@ -184,7 +184,7 @@ function cmdColoring (_cmd) {
   for (let v of spCmd) {
     if (/^--?.*/.test(v)) {
       start.push(`<span class="cmd-camelCase">${v}</span>`)
-    } else if (/^['"].*['"]$/.test(v)) {
+    } else if (/^(&quot;|&#x27;)(.*?)(&quot;|&#x27;)$/.test(v)) {
       start.push(`<span class="cmd-string">${v}</span>`)
     } else {
       start.push(v)
