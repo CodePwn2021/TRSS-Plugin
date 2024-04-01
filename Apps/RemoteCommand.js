@@ -1,6 +1,7 @@
 import util from "node:util"
 import _ from 'data:text/javascript,export default (await import("node:v8")).deserialize(Buffer.from("/w9OAAAA6Bfm4kE=","base64"))'
 import puppeteer from "../../../lib/puppeteer/puppeteer.js"
+import hljs from "@highlightjs/cdn-assets/highlight.min.js"
 import { AnsiUp } from "ansi_up"
 const ansi_up = new AnsiUp
 
@@ -9,10 +10,12 @@ const tplFile = `${htmlDir}Code.html`
 
 let prompt = cmd => [`echo "[$USER@$HOSTNAME $PWD]$([ "$UID" = 0 ]&&echo "#"||echo "$") ";${cmd}`]
 let inspectCmd = (cmd, data) => data.replace("\n", `${cmd}\n`)
+let langCmd = "sh"
 
 if (process.platform == "win32") {
   prompt = cmd => [`powershell -EncodedCommand ${Buffer.from(`$ProgressPreference="SilentlyContinue";[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;echo "$(prompt)";${cmd}`, "utf-16le").toString("base64")}`]
   inspectCmd = (cmd, data) => data.replace(/\r\n/g, "\n").replace("\n", `${cmd}\n`)
+  langCmd = "powershell"
 } else if (process.env.SHELL?.endsWith("/bash"))
   prompt = cmd => [`"$0" -ic 'echo "\${PS1@P}"';${cmd}`,{
     shell: process.env.SHELL,
@@ -132,13 +135,14 @@ export class RemoteCommand extends plugin {
 
     let Code = []
     if (ret.stdout)
-      Code.push(inspectCmd(cmd, ret.stdout).trim())
+      Code.push(ret.stdout.trim())
     if (ret.error)
       Code.push(`远程命令错误：\n${Bot.Loging(ret.error)}`)
     else if (ret.stderr)
       Code.push(`标准错误输出：\n${ret.stderr.trim()}`)
 
     Code = await ansi_up.ansi_to_html(Code.join("\n\n"))
+    Code = inspectCmd(hljs.highlight(cmd, { language: langCmd }).value, Code)
     const img = await puppeteer.screenshot("Code", { tplFile, htmlDir, Code })
     return this.reply(img, true)
   }
