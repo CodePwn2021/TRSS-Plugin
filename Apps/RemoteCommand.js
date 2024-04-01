@@ -115,34 +115,11 @@ export class RemoteCommand extends plugin {
     if (!ret.stdout && !ret.stderr && !ret.error)
       return this.reply("命令执行完成，没有返回值", true)
     if (ret.stdout)
-      await this.reply(inspectCmd(cmd, ret.stdout.trim()), true)
+      await this.reply(inspectCmd(cmd, ret.stdout).trim(), true)
     if (ret.error)
       return this.reply(`远程命令错误：${ret.error.stack}`, true)
     if (ret.stderr)
       await this.reply(`标准错误输出：\n${ret.stderr.trim()}`, true)
-  }
-
-  escapeHtml(data) {
-    return data
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;")
-      .replace(/ /g, "&nbsp;")
-  }
-
-  promptColor(cmd, data) {
-    cmd = cmd.split(" ")
-    const prompt = [`<span class="cmd-start">${this.escapeHtml(cmd.shift())}</span>`]
-    for (const i of cmd)
-      if (/^--?/.test(i))
-        prompt.push(`<span class="cmd-camelCase">${this.escapeHtml(i)}</span>`)
-      else if (/^('.*?'|".*?")$/.test(i))
-        prompt.push(`<span class="cmd-string">${this.escapeHtml(i)}</span>`)
-      else
-        prompt.push(i)
-    return inspectCmd(prompt.join(" "), data)
   }
 
   async ShellPic(e) {
@@ -155,14 +132,13 @@ export class RemoteCommand extends plugin {
 
     let Code = []
     if (ret.stdout)
-      Code.push(ret.stdout.trim())
+      Code.push(inspectCmd(cmd, ret.stdout).trim())
     if (ret.error)
       Code.push(`远程命令错误：\n${Bot.Loging(ret.error)}`)
     else if (ret.stderr)
       Code.push(`标准错误输出：\n${ret.stderr.trim()}`)
 
     Code = await ansi_up.ansi_to_html(Code.join("\n\n"))
-    Code = this.promptColor(cmd, Code)
     const img = await puppeteer.screenshot("Code", { tplFile, htmlDir, Code })
     return this.reply(img, true)
   }
